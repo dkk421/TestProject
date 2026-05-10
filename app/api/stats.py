@@ -43,6 +43,11 @@ def analytics(
     end: Optional[datetime] = None,
     db: Session = Depends(get_db)
 ):
+    device = db.get(Device, device_id)
+
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+
     return get_device_analytics(
         db=db,
         device_id=device_id,

@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.db.models.device import Device
+from app.db.models.user import User
 from app.schemas.device import DeviceCreate, DeviceResponse
 
 router = APIRouter(prefix="/devices", tags=["devices"])
@@ -13,7 +15,12 @@ def create_device(payload: DeviceCreate, db: Session = Depends(get_db)):
     device = Device(identifier=payload.identifier)
 
     db.add(device)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Device already exists")
+
     db.refresh(device)
 
     return device
@@ -27,7 +34,12 @@ def assign_device(
     device = db.get(Device, device_id)
 
     if not device:
-        return {"error": "Device not found"}
+        raise HTTPException(status_code=404, detail="Device not found")
+
+    user = db.get(User, user_id)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
     device.owner_id = user_id
 

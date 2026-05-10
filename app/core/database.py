@@ -1,12 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
-from app.db.base import Base
-from app.core.database import engine
-
-def init_db():
-    Base.metadata.create_all(bind=engine)
-
 DATABASE_URL = "sqlite:///./test.db"
 
 engine = create_engine(
@@ -19,6 +13,12 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 class Base(DeclarativeBase):
     pass
+
+
+def init_db():
+    import app.db.base  # noqa: F401
+
+    Base.metadata.create_all(bind=engine)
 
 
 def get_db():

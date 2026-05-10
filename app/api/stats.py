@@ -6,12 +6,8 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.schemas.statistic import StatisticCreate
-from app.services.analytics import get_device_analytics
 from app.services.devices import get_device_or_404
 from app.services.statistics import create_statistic
-
-from celery.result import AsyncResult
-from app.core.celery_app import celery_app
 from app.tasks.analytics import analyze_device_task
 
 router = APIRouter(prefix="/devices", tags=["stats"])
@@ -28,8 +24,8 @@ def add_stat(
     return {"status": "ok"}
 
 
-@router.get("/{device_id}/analytics")
-def analytics(
+@router.post("/{device_id}/analytics/tasks")
+def start_device_analytics_task(
     device_id: int,
     start: Optional[datetime] = None,
     end: Optional[datetime] = None,
@@ -37,19 +33,6 @@ def analytics(
 ):
     get_device_or_404(db, device_id)
 
-    return get_device_analytics(
-        db=db,
-        device_id=device_id,
-        start=start,
-        end=end
-    )
-
-@router.get("/{device_id}/analytics/async")
-def start_device_analytics_task(
-    device_id: int,
-    start: datetime | None = None,
-    end: datetime | None = None,
-):
     task = analyze_device_task.delay(
         device_id,
         start.isoformat() if start else None,
@@ -60,18 +43,3 @@ def start_device_analytics_task(
         "task_id": task.id,
         "status": "started",
     }
-
-
-@router.get("/tasks/{task_id}")
-def get_task_result(task_id: str):
-    task = AsyncResult(task_id, app=celery_app)
-
-    response = {
-        "task_id": task_id,
-        "status": task.status,
-    }
-
-    if task.ready():
-        response["result"] = task.result
-
-    return response

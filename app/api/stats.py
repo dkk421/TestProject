@@ -1,14 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from datetime import datetime
 from typing import Optional
 
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.db.models.device import Device
-from app.db.models.statistic import Statistic
 from app.schemas.statistic import StatisticCreate
 from app.services.analytics import get_device_analytics
+from app.services.devices import get_device_or_404
+from app.services.statistics import create_statistic
 
 router = APIRouter(prefix="/devices", tags=["stats"])
 
@@ -19,22 +19,10 @@ def add_stat(
     payload: StatisticCreate,
     db: Session = Depends(get_db)
 ):
-    device = db.get(Device, device_id)
-
-    if not device:
-        raise HTTPException(status_code=404, detail="Device not found")
-
-    stat = Statistic(
-        device_id=device_id,
-        x=payload.x,
-        y=payload.y,
-        z=payload.z
-    )
-
-    db.add(stat)
-    db.commit()
+    create_statistic(db, device_id, payload)
 
     return {"status": "ok"}
+
 
 @router.get("/{device_id}/analytics")
 def analytics(
@@ -43,10 +31,7 @@ def analytics(
     end: Optional[datetime] = None,
     db: Session = Depends(get_db)
 ):
-    device = db.get(Device, device_id)
-
-    if not device:
-        raise HTTPException(status_code=404, detail="Device not found")
+    get_device_or_404(db, device_id)
 
     return get_device_analytics(
         db=db,

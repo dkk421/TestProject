@@ -2,9 +2,24 @@ services:
   api:
     build: .
     container_name: testproject_api
-
     ports:
       - "8000:8000"
-
     volumes:
       - ./data:/app/data
+    depends_on:
+      - redis
+
+  worker:
+    build: .
+    container_name: testproject_worker
+    command: celery -A app.core.celery_app.celery_app worker --loglevel=info
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7
+    container_name: testproject_redis
+    ports:
+      - "6379:6379"

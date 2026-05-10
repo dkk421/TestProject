@@ -7,6 +7,10 @@ from app.services.users import create_user as create_user_service
 from app.services.users import get_user_or_404
 from app.services.user_analytics import get_user_analytics
 
+from celery.result import AsyncResult
+from app.core.celery_app import celery_app
+from app.tasks.analytics import analyze_user_task
+
 router = APIRouter(
     prefix="/users",
     tags=["users"]
@@ -29,3 +33,12 @@ def user_analytics(
     get_user_or_404(db, user_id)
 
     return get_user_analytics(db, user_id)
+
+@router.get("/{user_id}/analytics/async")
+def start_user_analytics_task(user_id: int):
+    task = analyze_user_task.delay(user_id)
+
+    return {
+        "task_id": task.id,
+        "status": "started",
+    }

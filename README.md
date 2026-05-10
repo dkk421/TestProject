@@ -40,7 +40,7 @@ HTTP API -> services -> db/models -> database
 
 В проекте используется не `asyncio`, а фоновая обработка через Celery.
 
-Задачи в `app/tasks/analytics.py` являются обычными синхронными Python-функциями. Декоратор `@celery_app.task` регистрирует их как Celery-задачи, чтобы их можно было отправлять в очередь:
+Задачи в `app/tasks/analytics.py` являются обычными синхронными функциями. Декоратор `@celery_app.task` регистрирует их как Celery-задачи, чтобы их можно было отправлять в очередь:
 
 ```python
 task = analyze_user_task.delay(user_id)
@@ -278,9 +278,9 @@ app/
     analytics.py      # аналитика по устройству
     user_analytics.py # аналитика по пользователю
     metrics.py        # общий расчет метрик
-    devices.py        # бизнес-логика устройств
-    statistics.py     # бизнес-логика статистики
-    users.py          # бизнес-логика пользователей
+    devices.py        # логика устройств
+    statistics.py     # логика статистики
+    users.py          # логика пользователей
 
   tasks/
     analytics.py      # Celery-задачи для фоновой аналитики
@@ -388,10 +388,3 @@ uvicorn app.main:app --reload
 ```powershell
 celery -A app.core.celery_app.celery_app worker --loglevel=info
 ```
-
-## Ограничения текущей реализации
-
-- SQLite удобен для демонстрации, но для реального параллельного API + Celery worker лучше использовать PostgreSQL.
-- Результаты Celery-задач хранятся в Redis result backend, а не в отдельной таблице БД.
-- Celery-задачи синхронные. Это нормально для текущей архитектуры, потому что SQLAlchemy и сервисный слой тоже синхронные.
-- Миграции БД не настроены: таблицы создаются через `Base.metadata.create_all()`.

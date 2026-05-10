@@ -36,4 +36,9 @@ def user_analytics(
     user_id: int,
     db: Session = Depends(get_db)
 ):
+    user = db.get(User, user_id)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
     return get_user_analytics(db, user_id)

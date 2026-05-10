@@ -1,6 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
+from app.db.base import Base
+from app.core.database import engine
+
+def init_db():
+    Base.metadata.create_all(bind=engine)
+
 DATABASE_URL = "sqlite:///./test.db"
 
 engine = create_engine(

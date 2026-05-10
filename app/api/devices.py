@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.models.device import Device
+from app.db.models.device import Device
 from app.schemas.device import DeviceCreate, DeviceResponse
 
 router = APIRouter(prefix="/devices", tags=["devices"])

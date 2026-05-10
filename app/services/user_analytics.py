@@ -2,8 +2,8 @@ from statistics import median
 
 from sqlalchemy.orm import Session
 
-from app.models.device import Device
-from app.models.statistic import Statistic
+from app.db.models.device import Device
+from app.db.models.statistic import Statistic
 
 
 def calculate_metrics(values: list[float]):

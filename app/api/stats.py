@@ -5,8 +5,8 @@ from typing import Optional
 
 
 from app.core.database import get_db
-from app.models.device import Device
-from app.models.statistic import Statistic
+from app.db.models.device import Device
+from app.db.models.statistic import Statistic
 from app.schemas.statistic import StatisticCreate
 from app.services.analytics import get_device_analytics
 

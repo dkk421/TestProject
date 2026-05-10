@@ -2,7 +2,7 @@ from statistics import median
 from datetime import datetime
 from sqlalchemy.orm import Session
 
-from app.models.statistic import Statistic
+from app.db.models.statistic import Statistic
 
 
 def calculate_metrics(values: list[float]):
